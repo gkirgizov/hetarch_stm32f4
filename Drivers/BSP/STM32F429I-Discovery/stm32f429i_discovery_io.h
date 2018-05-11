@@ -1,10 +1,13 @@
 /**
   ******************************************************************************
-  * @file    stm32f4xx_it.h
-  * @brief   This file contains the headers of the interrupt handlers.
+  * @file    stm32f429i_discovery_io.h
+  * @author  MCD Application Team
+  * @brief   This file contains all the functions prototypes for the
+  *          stm32f429i_discovery_io.c driver.
   ******************************************************************************
+  * @attention
   *
-  * COPYRIGHT(c) 2018 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -29,39 +32,100 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */
+  */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F4xx_IT_H
-#define __STM32F4xx_IT_H
+#ifndef __STM32F429I_DISCOVERY_IO_H
+#define __STM32F429I_DISCOVERY_IO_H
 
 #ifdef __cplusplus
  extern "C" {
-#endif 
+#endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
-#include "main.h"
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
+#include "stm32f429i_discovery.h"
+/* Include IO component driver */
+#include "../Components/stmpe811/stmpe811.h"   
 
-void HardFault_Handler(void);
-void MemManage_Handler(void);
-void BusFault_Handler(void);
-void UsageFault_Handler(void);
-void SVC_Handler(void);
-void DebugMon_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
-void FMC_IRQHandler(void);
-void OTG_HS_IRQHandler(void);
+/** @addtogroup BSP
+  * @{
+  */
+
+/** @addtogroup STM32F429I_DISCOVERY
+  * @{
+  */
+
+/** @addtogroup STM32F429I_DISCOVERY_IO
+  * @{
+  */
+
+/** @defgroup STM32F429I_DISCOVERY_IO_Exported_Types STM32F429I DISCOVERY IO Exported Types
+  * @{
+  */
+typedef enum 
+{
+  IO_OK       = 0,
+  IO_ERROR    = 1,
+  IO_TIMEOUT  = 2
+}IO_StatusTypeDef;
+/**
+  * @}
+  */  
+
+/** @defgroup STM32F429I_DISCOVERY_IO_Exported_Constants STM32F429I DISCOVERY IO Exported Constants
+  * @{
+  */
+#define IO_PIN_0                     0x01
+#define IO_PIN_1                     0x02
+#define IO_PIN_2                     0x04
+#define IO_PIN_3                     0x08
+#define IO_PIN_4                     0x10
+#define IO_PIN_5                     0x20
+#define IO_PIN_6                     0x40
+#define IO_PIN_7                     0x80
+#define IO_PIN_ALL                   0xFF
+/**
+  * @}
+  */  
+
+/** @defgroup STM32F429I_DISCOVERY_IO_Exported_Macros STM32F429I DISCOVERY IO Exported Macros
+  * @{
+  */
+/**
+  * @}
+  */  
+
+/** @defgroup STM32F429I_DISCOVERY_IO_Exported_Functions STM32F429I DISCOVERY IO Exported Functions
+  * @{
+  */
+uint8_t  BSP_IO_Init(void);
+uint8_t  BSP_IO_ITGetStatus(uint16_t IoPin);
+void     BSP_IO_ITClear(void);
+void     BSP_IO_ConfigPin(uint16_t IoPin, IO_ModeTypedef IoMode);
+void     BSP_IO_WritePin(uint16_t IoPin, uint8_t PinState);
+uint16_t BSP_IO_ReadPin(uint16_t IoPin);
+void     BSP_IO_TogglePin(uint16_t IoPin);
+  
+/**
+  * @}
+  */ 
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */ 
+
+/**
+  * @}
+  */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __STM32F4xx_IT_H */
+#endif /* __STM32F429I_DISCOVERY_IO_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
