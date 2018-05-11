@@ -1,0 +1,21 @@
+
+## Program Target ##
+
+# Don't forget to
+#   remove duplicate sources in C_SOURCES.
+#   fix BINPATH
+#   adjust DEBUG=1 & OPT=0g options
+
+OPENOCD ?= openocd
+OPENOCD_DIR="/usr/share/openocd"
+OPENOCD_SCRIPTS_DIR="${OPENOCD_DIR}/scripts"
+OPENOCD_FLAGS = -f interface/stlink-v2-1.cfg -f board/stm32f429discovery.cfg
+
+openocd:
+	$(OPENOCD) -s $(OPENOCD_SCRIPTS_DIR) $(OPENOCD_FLAGS)
+
+program: #all
+	$(OPENOCD) -s $(OPENOCD_SCRIPTS_DIR) $(OPENOCD_FLAGS) \
+	           -c "program $(BUILD_DIR)/$(TARGET).elf verify reset" \
+	           -c "shutdown"
+

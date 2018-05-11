@@ -1,0 +1,18 @@
+START_ASM  = $(SUPPORT_DIR)/startup_$(MCU_LC).s
+
+# Defines
+DEFS       = -D$(MCU_MC) -DUSE_STDPERIPH_DRIVER -DKEIL_IDE -DSTM32F429_439xx
+#-DUSE_HAL_DRIVER
+
+???float-abi
+	1. use softfp
+	2. use hard
+
+
+## More Targets ##
+~TARGET.elf
+	1. START_ASM for generating listing with OBJDUMP
+
+.o
+	1. .cpp and .c (no .s)
+	2. .c and .s (no .cpp)
