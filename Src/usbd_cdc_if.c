@@ -51,6 +51,10 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include "lcd_log.h"
+#include "assert.h"
+//#include "stdbool.h"
+//#include "ht_proto.h"
 
 /* USER CODE END INCLUDE */
 
@@ -128,6 +132,8 @@ uint8_t UserRxBufferHS[APP_RX_DATA_SIZE];
 uint8_t UserTxBufferHS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
+static const int32_t max_expect_data_size = APP_RX_DATA_SIZE;
+static int32_t expect_data_size = 0;
 
 /* USER CODE END PRIVATE_VARIABLES */
 
@@ -143,6 +149,10 @@ uint8_t UserTxBufferHS[APP_TX_DATA_SIZE];
 extern USBD_HandleTypeDef hUsbDeviceHS;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
+msg_header_t last_cmd;
+bool new_cmd_available = false;
+uint8_t received_data[APP_RX_DATA_SIZE];
+//uint32_t receive_total = 0;
 
 /* USER CODE END EXPORTED_VARIABLES */
 
@@ -296,6 +306,55 @@ static int8_t CDC_Receive_HS(uint8_t* Buf, uint32_t *Len)
   /* USER CODE BEGIN 11 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceHS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceHS);
+
+  LCD_DbgLog("receive:Len=%lu\n", *Len);
+
+  uint32_t received_data_size = *Len;
+  uint32_t data_offset = 0;
+  if (expect_data_size == 0) {
+      // will be available on receiving all expected data
+      new_cmd_available = false;
+
+      // expecting command first
+      if (received_data_size >= sizeof(msg_header_t)) {
+          last_cmd = *(msg_header_t*)Buf;
+          expect_data_size = last_cmd.size;
+          LCD_DbgLog("recv new msg; size=%lu\n", last_cmd.size);
+
+          if (expect_data_size > max_expect_data_size) {
+              LCD_ErrLog("incorrect cmd.size (%lu>%lu)!\n", expect_data_size, max_expect_data_size);
+              expect_data_size = 0; // reset
+              return USBD_FAIL;
+          };
+
+          data_offset += sizeof(msg_header_t);
+          received_data_size -= sizeof(msg_header_t);
+      } else {
+          LCD_ErrLog("not enough data for command\n");
+          return USBD_FAIL;
+          // TODO: assume receiving part of command, handle it
+      }
+  }
+
+  if (expect_data_size < received_data_size) {
+      LCD_ErrLog("recv (%lu), but expected (%lu)!\n", received_data_size, expect_data_size);
+      // received_data_size = expect_data_size; // truncate
+      return USBD_FAIL;
+  }
+  // copy data to our buffer to not lost it on next CDC_Receive_HS
+  uint32_t recv_data_end = last_cmd.size - expect_data_size;
+  memcpy(received_data + recv_data_end, Buf + data_offset, received_data_size);
+  expect_data_size -= received_data_size;
+
+  if (expect_data_size > 0) {
+      LCD_DbgLog("expect_data_size=%lu...\n", expect_data_size);
+  } else if (expect_data_size == 0) {
+      LCD_DbgLog("expect_data_size=0: read all.\n");
+      new_cmd_available = true;
+  } else {
+      LCD_ErrLog("expect_data_size=%lu!\n", expect_data_size);
+  }
+
   return (USBD_OK);
   /* USER CODE END 11 */
 }
@@ -315,7 +374,21 @@ uint8_t CDC_Transmit_HS(uint8_t* Buf, uint16_t Len)
   if (hcdc->TxState != 0){
     return USBD_BUSY;
   }
-  USBD_CDC_SetTxBuffer(&hUsbDeviceHS, Buf, Len);
+
+  // USBD_CDC_SetTxBuffer(&hUsbDeviceHS, Buf, Len);
+
+  uint16_t total_len = Len;
+
+  msg_header_t header = { Len };
+  uint8_t* buf_ptr = UserTxBufferHS;
+  memcpy(buf_ptr, (uint8_t*)&header, sizeof(header));
+  total_len += sizeof(header);
+  buf_ptr += sizeof(header);
+
+  memcpy(buf_ptr, Buf, Len);
+  USBD_CDC_SetTxBuffer(&hUsbDeviceHS, UserTxBufferHS, total_len);
+  LCD_DbgLog("transmit:size: payload=%u;total=%u\n", Len, total_len);
+
   result = USBD_CDC_TransmitPacket(&hUsbDeviceHS);
   /* USER CODE END 12 */
   return result;

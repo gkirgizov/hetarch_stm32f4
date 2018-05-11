@@ -58,6 +58,17 @@
 #include "fmc.h"
 
 /* USER CODE BEGIN Includes */
+#include "stdbool.h"
+#include "assert.h"
+
+#include "stm32f429i_discovery_sdram.h"
+#include "stm32f4xx_hal_sdram.h"
+#include "lcd_log.h"
+#include "usbd_cdc_if.h"
+
+/* #include "ht_proto.h" */
+/* #include "addr_typedef.h" */
+#include "ht_runtime.h"
 
 /* USER CODE END Includes */
 
@@ -65,7 +76,6 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -73,11 +83,9 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -118,12 +126,33 @@ int main(void)
   MX_DMA2D_Init();
   /* USER CODE BEGIN 2 */
 
+  /* Configure LED3 and LED4 */
+  BSP_LED_Init(LED3);
+  BSP_LED_Init(LED4);
+
+  HT_Runtime_Init();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  LCD_DbgLog("starting main loop\n");
   while (1)
   {
+      if (new_cmd_available) {
+          new_cmd_available = false;
+          // LCD_DbgLog("received data: size %d \n", last_cmd.size);
+          HAL_GPIO_WritePin(GPIOG, LD3_Pin, GPIO_PIN_SET);
+
+          HANDLE_COMMAND();
+      }
+
+      /* Heartbeat */
+      BSP_LED_On(LED4);
+      HAL_Delay(100); // for test
+      BSP_LED_Off(LED4);
+      HAL_GPIO_WritePin(GPIOG, LD3_Pin, GPIO_PIN_RESET);
+      HAL_Delay(100); // for test
 
   /* USER CODE END WHILE */
 
@@ -202,7 +231,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
 /* USER CODE END 4 */
 
 /**
@@ -215,6 +243,7 @@ void _Error_Handler(char *file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
+  LCD_ErrLog("err in line %d, %s.\n", line, file);
   while(1)
   {
   }

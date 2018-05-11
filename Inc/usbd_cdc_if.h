@@ -59,6 +59,8 @@
 #include "usbd_cdc.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include "stdbool.h"
+#include "ht_proto.h"
 
 /* USER CODE END INCLUDE */
 
@@ -119,6 +121,9 @@
 extern USBD_CDC_ItfTypeDef USBD_Interface_fops_HS;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
+extern msg_header_t last_cmd;
+extern bool new_cmd_available;
+extern uint8_t received_data[];
 
 /* USER CODE END EXPORTED_VARIABLES */
 
@@ -134,6 +139,7 @@ extern USBD_CDC_ItfTypeDef USBD_Interface_fops_HS;
 uint8_t CDC_Transmit_HS(uint8_t* Buf, uint16_t Len);
 
 /* USER CODE BEGIN EXPORTED_FUNCTIONS */
+//uint8_t CDC_Receive_HS(uint8_t* Buf, uint32_t *Len);
 
 /* USER CODE END EXPORTED_FUNCTIONS */
 
