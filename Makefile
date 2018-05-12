@@ -113,6 +113,7 @@ Src/gpio.c \
  \
 Src/ht_runtime.c \
 Src/ht_scheduled_funs.c \
+Src/ht_proto.c \
  \
 SW4STM32/syscalls.c \
 Utilities/Log/lcd_log.c \

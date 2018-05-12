@@ -318,6 +318,11 @@ static int8_t CDC_Receive_HS(uint8_t* Buf, uint32_t *Len)
       // expecting command first
       if (received_data_size >= sizeof(msg_header_t)) {
           last_cmd = *(msg_header_t*)Buf;
+          if (!check_magic(&last_cmd)) {
+              // received some noise
+              LCD_ErrLog("invalid magic in msg!\n");
+              return USBD_FAIL;
+          }
           expect_data_size = last_cmd.size;
           LCD_DbgLog("recv new msg; size=%lu\n", last_cmd.size);
 
@@ -379,7 +384,7 @@ uint8_t CDC_Transmit_HS(uint8_t* Buf, uint16_t Len)
 
   uint16_t total_len = Len;
 
-  msg_header_t header = { Len };
+  msg_header_t header = get_msg_header(Len);
   uint8_t* buf_ptr = UserTxBufferHS;
   memcpy(buf_ptr, (uint8_t*)&header, sizeof(header));
   total_len += sizeof(header);
